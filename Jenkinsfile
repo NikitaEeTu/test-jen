@@ -19,5 +19,11 @@ steps {
                 sh 'docker build -t "my-new-app" .'
 }
 }
+stage('app test') {
+steps {
+sh 'npm test'
+}
+}
+
 }
 }
