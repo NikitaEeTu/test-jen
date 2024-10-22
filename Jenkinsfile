@@ -14,5 +14,10 @@ pipeline {
                 sh 'node server.js'
             }
         }
+stage('Docker build') {
+steps {
+                sh 'docker build -t "my-new-app" .'
+}
+}
 }
 }
