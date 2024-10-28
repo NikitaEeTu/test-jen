@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = "my-new-app"
         DOCKER_HUB_REPO = "your-docker-hub-username/my-new-app"
+DOCKERHUB_CREDENTIALS = credentials("docker-hub-credentials")
     }
 
     stages {
@@ -29,10 +30,10 @@ pipeline {
             steps {
                 script {
                     // Use the correct credentials ID here
-                    docker.withRegistry('', 'docker-hub-credentials') {
+                    sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
                         sh "docker tag ${DOCKER_IMAGE} ${DOCKER_HUB_REPO}:latest"
                         sh "docker push ${DOCKER_HUB_REPO}:latest"
-                    }
+                   
                 }
             }
         }
