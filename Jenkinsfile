@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = "my-new-app"
         DOCKER_HUB_REPO = "your-docker-hub-username/my-new-app"
-DOCKERHUB_CREDENTIALS = credentials("docker-hub-credentials")
+        DOCKERHUB_CREDENTIALS = credentials("docker-hub-credentials")
     }
 
     stages {
@@ -29,11 +29,11 @@ DOCKERHUB_CREDENTIALS = credentials("docker-hub-credentials")
         stage('Docker Push') {
             steps {
                 script {
-                    // Use the correct credentials ID here
-                    sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-                        sh "docker tag ${DOCKER_IMAGE} ${DOCKER_HUB_REPO}:latest"
-                        sh "docker push ${DOCKER_HUB_REPO}:latest"
-                   
+                    // Logging in to Docker Hub using the credentials
+                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                    // Tagging and pushing the Docker image
+                    sh "docker tag ${DOCKER_IMAGE} ${DOCKER_HUB_REPO}:latest"
+                    sh "docker push ${DOCKER_HUB_REPO}:latest"
                 }
             }
         }
@@ -51,4 +51,3 @@ DOCKERHUB_CREDENTIALS = credentials("docker-hub-credentials")
         }
     }
 }
-
