@@ -14,24 +14,23 @@ pipeline {
                 echo 'start app and build process'
             }
         }
-stage('Docker build') {
-steps {
+        stage('Docker build') {
+            steps {
                 sh 'docker build -t "my-new-app" .'
-}
-}
-stage('app test') {
-steps {
-sh 'docker run -d --name my-new-app-container my-new-app'
-sh 'docker exec my-new-app-container npm test'
-}
-}
-
-stage('Clean up') {
-    steps {
-        sh 'docker stop my-new-app-container'
-        sh 'docker rm my-new-app-container'
+            }
+        }
+        stage('app test') {
+            steps {
+                sh 'docker run -d --name my-new-app-container my-new-app'
+                sh 'docker exec my-new-app-container npm test'
+            }
+        }
+        stage('Clean up') {
+            steps {
+                sh 'docker stop my-new-app-container'
+                sh 'docker rm my-new-app-container'
+            }
+        }
     }
-
-
 }
-}
+
