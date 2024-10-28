@@ -1,53 +1,37 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE = "my-new-app"
-        DOCKER_HUB_REPO = "your-docker-hub-username/my-new-app"
-        DOCKERHUB_CREDENTIALS = credentials("docker-hub-credentials")
+    stages {
+        stage('Hello') {
+            steps {
+                echo 'Hello World :)))))))'
+                sh 'echo "Hello, Nikita" > hello.txt'
+                sh 'cat hello.txt'
+            }
+        }
+        stage('Start app') {
+            steps {
+                echo 'start app and build process'
+            }
+        }
+stage('Docker build') {
+steps {
+                sh 'docker build -t "my-new-app" .'
+}
+}
+stage('app test') {
+steps {
+sh 'docker run -d --name my-new-app-container my-new-app'
+sh 'docker exec my-new-app-container npm test'
+}
+}
+
+stage('Clean up') {
+    steps {
+        sh 'docker stop my-new-app-container'
+        sh 'docker rm my-new-app-container'
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                echo 'Checking out the code...'
-                checkout scm
-            }
-        }
-        stage('Install Dependencies') {
-            steps {
-                echo 'Installing npm dependencies...'
-                sh 'npm install'
-            }
-        }
-        stage('Docker Build') {
-            steps {
-                echo 'Building Docker image...'
-                sh 'docker build -t ${DOCKER_IMAGE} .'
-            }
-        }
-        stage('Docker Push') {
-            steps {
-                script {
-                    // Logging in to Docker Hub using the credentials
-                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-                    // Tagging and pushing the Docker image
-                    sh "docker tag ${DOCKER_IMAGE} ${DOCKER_HUB_REPO}:latest"
-                    sh "docker push ${DOCKER_HUB_REPO}:latest"
-                }
-            }
-        }
-        stage('Test') {
-            steps {
-                echo 'Running tests...'
-                sh 'npm test'
-            }
-        }
-        stage('Clean up') {
-            steps {
-                echo 'Cleaning up...'
-                sh 'docker system prune -f'
-            }
-        }
-    }
+
+}
 }
