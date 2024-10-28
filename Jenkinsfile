@@ -2,35 +2,67 @@ pipeline {
     agent any
 
     stages {
-        stage('Hello') {
+        stage('Checkout') {
             steps {
-                echo 'Hello World :)))))))'
-                sh 'echo "Hello, Nikita" > hello.txt'
-                sh 'cat hello.txt'
+                echo 'Checking out the code...'
+                checkout scm
             }
         }
-        stage('Start app') {
+        stage('Install Dependencies') {
             steps {
-                echo 'start app and build process'
+                echo 'Installing npm dependencies...'
+                // Retry mechanism for npm install
+                script {
+                    def retries = 3
+                    def success = false
+                    for (int i = 0; i < retries; i++) {
+                        try {
+                            sh 'npm install'
+                            success = true
+                            break
+                        } catch (Exception e) {
+                            echo "npm install failed, attempt ${i + 1} of ${retries}"
+                        }
+                    }
+                    if (!success) {
+                        error "npm install failed after ${retries} attempts"
+                    }
+                }
             }
         }
-        stage('Docker build') {
+        stage('Build') {
             steps {
-                sh 'docker build -t "my-new-app" .'
+                echo 'Building the application...'
+                sh 'npm run build'
             }
         }
-        stage('app test') {
+        stage('Docker Build') {
             steps {
-                sh 'docker run -d --name my-new-app-container my-new-app'
-                sh 'docker exec my-new-app-container npm test'
+                echo 'Building Docker image...'
+                sh 'docker build -t my-new-app .'
+            }
+        }
+        stage('Docker Push') {
+            steps {
+                script {
+                    docker.withRegistry('', 'docker-hub-credentials') {
+                        sh 'docker tag my-new-app your-docker-hub-username/my-new-app:latest'
+                        sh 'docker push your-docker-hub-username/my-new-app:latest'
+                    }
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Running tests...'
+                sh 'npm test'
             }
         }
         stage('Clean up') {
             steps {
-                sh 'docker stop my-new-app-container'
-                sh 'docker rm my-new-app-container'
+                echo 'Cleaning up...'
+                sh 'docker system prune -f'
             }
         }
     }
 }
-
