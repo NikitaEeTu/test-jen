@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = "my-new-app"
+        DOCKER_HUB_REPO = "your-docker-hub-username/my-new-app"
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -11,43 +16,22 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 echo 'Installing npm dependencies...'
-                // Retry mechanism for npm install
-                script {
-                    def retries = 3
-                    def success = false
-                    for (int i = 0; i < retries; i++) {
-                        try {
-                            sh 'npm install'
-                            success = true
-                            break
-                        } catch (Exception e) {
-                            echo "npm install failed, attempt ${i + 1} of ${retries}"
-                        }
-                    }
-                    if (!success) {
-                        error "npm install failed after ${retries} attempts"
-                    }
-                }
-            }
-        }
-        stage('Build') {
-            steps {
-                echo 'Building the application...'
-                sh 'npm run build'
+                sh 'npm install'
             }
         }
         stage('Docker Build') {
             steps {
                 echo 'Building Docker image...'
-                sh 'docker build -t my-new-app .'
+                sh 'docker build -t ${DOCKER_IMAGE} .'
             }
         }
         stage('Docker Push') {
             steps {
                 script {
+                    // Make sure to use the correct credentials ID here
                     docker.withRegistry('', 'docker-hub-credentials') {
-                        sh 'docker tag my-new-app your-docker-hub-username/my-new-app:latest'
-                        sh 'docker push your-docker-hub-username/my-new-app:latest'
+                        sh "docker tag ${DOCKER_IMAGE} ${DOCKER_HUB_REPO}:latest"
+                        sh "docker push ${DOCKER_HUB_REPO}:latest"
                     }
                 }
             }
