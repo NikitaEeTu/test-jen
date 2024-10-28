@@ -28,7 +28,7 @@ pipeline {
         stage('Docker Push') {
             steps {
                 script {
-                    // Make sure to use the correct credentials ID here
+                    // Use the correct credentials ID here
                     docker.withRegistry('', 'docker-hub-credentials') {
                         sh "docker tag ${DOCKER_IMAGE} ${DOCKER_HUB_REPO}:latest"
                         sh "docker push ${DOCKER_HUB_REPO}:latest"
@@ -50,3 +50,4 @@ pipeline {
         }
     }
 }
+
